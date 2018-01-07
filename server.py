@@ -1,0 +1,44 @@
+import base64
+from flask import Flask, jsonify, request
+from sqlalchemy import text
+
+import database
+
+app = Flask(__name__)
+
+@app.route('/api/search')
+def search():
+    query = request.args.get('q', '')
+
+    session = database.Session()
+
+    queryResults = session.query(database.SlideContent)\
+        .join(database.Slide)\
+        .join(database.Document)\
+        .filter(text('''slide_content_content match '"''' + query + '''*"' '''))\
+        .all()
+
+    results = [search_result(x, query) for x in queryResults]
+
+    response = { 'results': results }
+
+    return jsonify(response)
+
+def search_result(x, search_term):
+    t = x.content
+    start = t.lower().find(search_term.lower())
+    sub_start = t.rfind('\n', 0, start)+1
+    sub_end = t.find('\n', start+len(search_term))
+    sub = t[sub_start:sub_end]
+    start = sub.lower().find(search_term.lower())
+    match = {
+        'text': sub,
+        'start': start,
+        'length': len(search_term)
+    }
+    return {
+        'slide': x.slide.slide, 
+        'path': x.slide.document.path, 
+        'thumbnail': str(base64.b64encode(x.slide.thumnail_png)),
+        'match': match
+    }

@@ -10,6 +10,8 @@ class Document(Base):
     id = Column(Integer, primary_key=True)
     path = Column(String)
 
+    thumbnails = relationship("Slide", order_by="Slide.slide", back_populates='document')
+
 
 class Slide(Base):
     __tablename__ = 'slide'
@@ -20,6 +22,7 @@ class Slide(Base):
     document_id = Column(Integer, ForeignKey('document.id'))
 
     document = relationship("Document", back_populates="thumbnails")
+    content = relationship("SlideContent", back_populates="slide")
 
 class SlideContent(Base):
     __tablename__ = 'slide_content'
@@ -28,9 +31,6 @@ class SlideContent(Base):
     content = Column(Text)
 
     slide = relationship("Slide", back_populates="content")
-
-Document.thumbnails = relationship("Slide", order_by=Slide.slide, back_populates='document')
-Slide.content = relationship("SlideContent", back_populates='slide')
 
 engine = create_engine('sqlite:///db/rolodecks.sqlite', echo=True)
 
