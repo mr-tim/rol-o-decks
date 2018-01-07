@@ -39,6 +39,6 @@ def search_result(x, search_term):
     return {
         'slide': x.slide.slide, 
         'path': x.slide.document.path, 
-        'thumbnail': str(base64.b64encode(x.slide.thumnail_png)),
+        'thumbnail': str(base64.b64encode(x.slide.thumnail_png))[2:-1],
         'match': match
     }
