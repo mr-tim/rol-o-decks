@@ -1,7 +1,7 @@
 <template>
-  <div>
-    <input v-model="searchTerm" type="text"/>
-    <div>
+  <div class="search">
+    <input class="searchBox" v-model="searchTerm" type="text"/>
+    <div class="searchResults">
       <SearchResult v-for="result in results" :key="result.path + '#' + result.slide" :result="result"/>
     </div>
   </div>
@@ -38,4 +38,26 @@ export default {
 </script>
 
 <style>
+.search {
+  max-width: 60rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.searchBox {
+  width: 98%;
+  border: 1px solid #aaa;
+  box-shadow: none;
+  border-radius: 0.3rem;
+  font-size: 1.8rem;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  outline: none;
+}
+
+.searchResults {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 </style>

@@ -1,10 +1,12 @@
 <template>
-<div>
-  <a @click="open" href="#"><img :src="imgSrc"/></a>
-  <p>{{ result.path }}</p>
-  <p>Slide {{result.slide}}</p>
-  <div v-html="formattedMatch"></div>
-</div>
+  <div class="searchResult">
+    <div class="thumbnail">
+      <a @click="open" href="#"><img :src="imgSrc"/></a>
+      <p>{{ result.path }}</p>
+      <p class="slideNum">Slide {{result.slide}}</p>
+    </div>
+    <div class="matchContent" v-html="formattedMatch"></div>
+  </div>
 </template>
 
 <script>
@@ -40,5 +42,11 @@ export default {
 </script>
 
 <style>
+.slideNum {
+  text-align: center;
+}
 
+.searchResult {
+  display: flex;
+}
 </style>
