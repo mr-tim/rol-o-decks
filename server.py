@@ -1,6 +1,7 @@
 import base64
 from flask import Flask, jsonify, request
 from sqlalchemy import text
+import subprocess
 
 import database
 
@@ -24,6 +25,18 @@ def search():
 
     return jsonify(response)
 
+@app.route('/api/open/<int:slideId>')
+def open(slideId):
+    session = database.Session()
+    slide = session.query(database.Slide)\
+        .get(slideId)
+
+    cmd = ['open', slide.document.path]
+    print("Running command: {}".format(cmd))
+    result = subprocess.run(cmd)
+    print("Result: {}".format(result))
+    return 'ok'
+
 def search_result(x, search_term):
     t = x.content
     start = t.lower().find(search_term.lower())
@@ -37,6 +50,7 @@ def search_result(x, search_term):
         'length': len(search_term)
     }
     return {
+        'slideId': x.slide.id,
         'slide': x.slide.slide, 
         'path': x.slide.document.path, 
         'thumbnail': str(base64.b64encode(x.slide.thumnail_png))[2:-1],

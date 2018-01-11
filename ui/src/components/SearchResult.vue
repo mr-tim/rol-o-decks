@@ -1,8 +1,8 @@
 <template>
 <div>
-  <a target="_blank" :href="fileLink">
-    <img :src="imgSrc"/>
-  </a>
+  <a @click="open" href="#"><img :src="imgSrc"/></a>
+  <p>{{ result.path }}</p>
+  <p>Slide {{result.slide}}</p>
 </div>
 </template>
 
@@ -11,6 +11,12 @@ export default {
   name: 'SearchResult',
 
   props: [ 'result' ],
+
+  methods: {
+    open () {
+      fetch('/api/open/' + this.result.slideId)
+    }
+  },
 
   computed: {
     fileLink () {
