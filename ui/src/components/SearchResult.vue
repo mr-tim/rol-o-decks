@@ -3,6 +3,7 @@
   <a @click="open" href="#"><img :src="imgSrc"/></a>
   <p>{{ result.path }}</p>
   <p>Slide {{result.slide}}</p>
+  <div v-html="formattedMatch"></div>
 </div>
 </template>
 
@@ -25,6 +26,14 @@ export default {
 
     imgSrc () {
       return 'data:image/png;base64,' + this.result.thumbnail
+    },
+
+    formattedMatch () {
+      let match = this.result.match
+      match.end = match.start + match.length
+      let output = [match.text.slice(0, match.end), '</b>', match.text.slice(match.end)].join('')
+      output = [output.slice(0, match.start), '<b>', output.slice(match.start)].join('')
+      return output
     }
   }
 }
