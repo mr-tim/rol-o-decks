@@ -32,9 +32,7 @@ def open(slideId):
         .get(slideId)
 
     cmd = ['open', slide.document.path]
-    print("Running command: {}".format(cmd))
     result = subprocess.run(cmd)
-    print("Result: {}".format(result))
     return 'ok'
 
 def search_result(x, search_term):
