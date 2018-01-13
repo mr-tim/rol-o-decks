@@ -40,7 +40,10 @@ def search_result(x, search_term):
     start = t.lower().find(search_term.lower())
     sub_start = t.rfind('\n', 0, start)+1
     sub_end = t.find('\n', start+len(search_term))
-    sub = t[sub_start:sub_end]
+    if sub_end == -1:
+        sub = t[sub_start:]
+    else:
+        sub = t[sub_start:sub_end]
     start = sub.lower().find(search_term.lower())
     match = {
         'text': sub,
