@@ -1,7 +1,7 @@
 Rol-o-Decks
 ===========
 
-Index and search slides in Powerpoint presentations
+Index and search slides in Powerpoint presentations.
 
 Currently only works on macOS, and requires Python 3.6 and Node 9.3.
 
@@ -21,3 +21,4 @@ You can specify any number of paths where presentations will be indexed using `c
 
 You can then start and stop the servers using `start.sh` and `stop.sh`.
 
+The server will then be available at `http://localhost:8080`.
