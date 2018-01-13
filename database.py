@@ -12,7 +12,7 @@ class Document(Base):
     created = Column(DateTime)
     last_modified = Column(DateTime)
 
-    thumbnails = relationship("Slide", order_by="Slide.slide", back_populates='document')
+    thumbnails = relationship("Slide", order_by="Slide.slide", back_populates='document', cascade='all')
 
 
 class Slide(Base):
@@ -24,7 +24,7 @@ class Slide(Base):
     document_id = Column(Integer, ForeignKey('document.id'))
 
     document = relationship("Document", back_populates="thumbnails")
-    content = relationship("SlideContent", back_populates="slide")
+    content = relationship("SlideContent", back_populates="slide", cascade='all')
 
 class SlideContent(Base):
     __tablename__ = 'slide_content'
