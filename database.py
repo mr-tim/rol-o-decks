@@ -2,6 +2,8 @@ from sqlalchemy import Column, Binary, DateTime, Integer, String, ForeignKey, Te
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
+import config
+
 Base = declarative_base()
 
 class Document(Base):
@@ -34,7 +36,7 @@ class SlideContent(Base):
 
     slide = relationship("Slide", back_populates="content")
 
-engine = create_engine('sqlite:///db/rolodecks.sqlite', echo=True)
+engine = create_engine(config.database_path, echo=True)
 
 engine.execute('create virtual table if not exists slide_content using fts4(slide_id INTEGER, content TEXT);')
 

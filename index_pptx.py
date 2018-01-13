@@ -2,12 +2,12 @@ import datetime
 import os.path
 import os
 import subprocess
-import sys
 import tempfile
 import time
 import xml.etree.ElementTree as ET
 import zipfile
 
+import config
 import database
 
 def copy_in_zip(zip_handle, from_path, to_path):
@@ -121,9 +121,7 @@ def index_paths(paths):
         time.sleep(10)
 
 def indexer():
-    index_paths([\
-        'slides1',\
-        'slides2'])
+    index_paths(config.paths)
 
 if __name__ == '__main__':
     indexer()
