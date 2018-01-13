@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source venv/bin/activate
+
 FLASK_APP=server.py flask run > /dev/null 2>&1 &
 echo $! > flask.pid
 
