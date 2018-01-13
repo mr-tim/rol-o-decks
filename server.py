@@ -13,15 +13,15 @@ def search():
 
     session = database.Session()
 
-    queryResults = session.query(database.SlideContent)\
+    query_results = session.query(database.SlideContent)\
         .join(database.Slide)\
         .join(database.Document)\
         .filter(text('''slide_content_content match '"''' + query + '''*"' '''))\
         .all()
 
-    results = [search_result(x, query) for x in queryResults]
+    results = [search_result(x, query) for x in query_results]
 
-    response = { 'results': results }
+    response = {'results': results}
 
     return jsonify(response)
 
@@ -32,7 +32,7 @@ def open(slideId):
         .get(slideId)
 
     cmd = ['open', slide.document.path]
-    result = subprocess.run(cmd)
+    subprocess.run(cmd)
     return 'ok'
 
 def search_result(x, search_term):
@@ -49,8 +49,8 @@ def search_result(x, search_term):
     }
     return {
         'slideId': x.slide.id,
-        'slide': x.slide.slide, 
-        'path': x.slide.document.path, 
+        'slide': x.slide.slide,
+        'path': x.slide.document.path,
         'thumbnail': str(base64.b64encode(x.slide.thumnail_png))[2:-1],
         'match': match
     }
