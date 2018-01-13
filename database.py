@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Binary, Integer, String, ForeignKey, Text, create_engine
+from sqlalchemy import Column, Binary, DateTime, Integer, String, ForeignKey, Text, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
@@ -9,6 +9,8 @@ class Document(Base):
 
     id = Column(Integer, primary_key=True)
     path = Column(String)
+    created = Column(DateTime)
+    last_modified = Column(DateTime)
 
     thumbnails = relationship("Slide", order_by="Slide.slide", back_populates='document')
 
