@@ -92,7 +92,7 @@ def index_file(powerpoint_file):
 def scrape_text_content(xml_content):
     tree = ET.fromstring(xml_content)
     tag = '{http://schemas.openxmlformats.org/drawingml/2006/main}t'
-    return '\n'.join([text_elem.text for text_elem in tree.iter(tag)])
+    return '\n'.join([text_elem.text for text_elem in tree.iter(tag) if text_elem.text is not None])
 
 def index_paths(paths):
     while True:
