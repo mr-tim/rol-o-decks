@@ -7,3 +7,6 @@ db
 config.json
 *.pid
 .idea
+.plz-cache
+plz-out
+data
