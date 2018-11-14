@@ -1,5 +1,7 @@
 package store
 
+import "time"
+
 type SearchResult struct {
 	SlideId   string            `json:"slideId"`
 	Slide     int               `json:"slide"`
@@ -17,4 +19,6 @@ type SearchResultMatch struct {
 type SlideStore interface {
 	Search(query string) []SearchResult
 	GetDocumentPathForSlideId(slideId string) string
+	IsFileModified(path string, modifiedTime time.Time, fileSize int64) bool
+	Save(document Document)
 }

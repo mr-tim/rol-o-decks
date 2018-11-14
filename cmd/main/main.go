@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gorilla/mux"
+	"indexer"
 	"log"
 	"net/http"
 	"server/handlers"
@@ -10,8 +11,11 @@ import (
 
 func main() {
 	serverContext := handlers.ServerContext{
-		Store: store.InMemoryStore{},
+		Store: store.NewInMemoryStore(),
 	}
+
+	go indexer.IndexPaths(serverContext.Store, "data/slides1", "data/slides2")
+
 	r := mux.NewRouter()
 	r.Path("/api/search").
 		Queries("q", "{q}").

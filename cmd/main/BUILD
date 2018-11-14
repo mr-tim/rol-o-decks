@@ -4,9 +4,10 @@ go_binary(
         'main.go',
     ],
     deps = [
-        '//third_party:gorilla_mux',
+        '//indexer:indexer',
         '//server/handlers:handlers',
         '//store:store',
+        '//third_party:gorilla_mux',
         '//ui/dist:ui_dist',
     ]
 )
