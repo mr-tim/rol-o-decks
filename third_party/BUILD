@@ -26,9 +26,8 @@ go_get(
 go_get(
     name = 'x_net_html',
     get = 'golang.org/x/net/html',
-)
-
-go_get(
-    name = 'x_net_html_atom',
-    get = 'golang.org/x/net/html/atom',
+    install = [
+        "",
+        "atom",
+    ],
 )
