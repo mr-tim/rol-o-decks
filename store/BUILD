@@ -3,7 +3,11 @@ go_library(
     srcs = [
         'in_memory.go',
         'models.go',
+        'sqlite.go',
         'store.go',
+    ],
+    deps = [
+        '//third_party:sqlite3',
     ],
     visibility = [
         '//cmd/main',

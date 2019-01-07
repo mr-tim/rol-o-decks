@@ -23,7 +23,7 @@ func main() {
 	config := LoadConfig()
 
 	serverContext := handlers.ServerContext{
-		Store: store.NewInMemoryStore(),
+		Store: store.NewSqliteStore(config.Database.Uri),
 	}
 
 	go indexer.IndexPaths(serverContext.Store, config.Locations...)

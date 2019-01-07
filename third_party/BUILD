@@ -12,6 +12,12 @@ go_get(
 )
 
 go_get(
+    name = 'sqlite3',
+    get = 'github.com/mattn/go-sqlite3',
+    visibility = ['//store:store'],
+)
+
+go_get(
     name = 'x_sys',
     get = 'golang.org/x/sys/...',
 )
