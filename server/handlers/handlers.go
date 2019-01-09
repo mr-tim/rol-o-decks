@@ -3,7 +3,9 @@ package handlers
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"log"
 	"net/http"
+	"os/exec"
 	"store"
 )
 
@@ -31,7 +33,12 @@ func OpenSlideHandler(serverContext ServerContext) handler {
 	return func(w http.ResponseWriter, r *http.Request) {
 		slideId := mux.Vars(r)["slideId"]
 		documentPath := serverContext.Store.GetDocumentPathForSlideId(slideId)
-		// TODO: open the slide
 		w.Write([]byte("opening: " + documentPath))
+
+		c := exec.Command("open", documentPath)
+		err := c.Start()
+		if err != nil {
+			log.Printf("Error whilst trying to open %s: %s", documentPath, err)
+		}
 	}
 }
