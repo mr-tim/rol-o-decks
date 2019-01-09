@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -39,7 +40,7 @@ func ensureDatabasePresent(uri string) *sql.DB {
 
 	s, err = db.Prepare(`CREATE TABLE IF NOT EXISTS slide (
 		id INTEGER NOT NULL, 
-		thumnail_png BLOB, 
+		thumbnail_png BLOB, 
 		slide INTEGER, 
 		document_id INTEGER, 
 		PRIMARY KEY (id), 
@@ -65,7 +66,49 @@ func checkErrors(err error, message string) {
 }
 
 func (s *SqliteMemoryStore) Search(query string) []SearchResult {
-	return []SearchResult{}
+	log.Printf("Searching for '%s'", query)
+	rows, err := s.db.Query(`
+				select
+				    d.path, s.id as slide_id, s.thumbnail_png, s.slide as slide_no,
+					sc.content as search_content
+				from
+					slide_content sc, document d, slide s
+				where
+				      sc.content match ?
+				      and sc.slide_id = s.id
+				      and s.document_id = d.id`, "'" + query + "*'")
+	checkErrors(err, "Failed to search for documents")
+	defer rows.Close()
+
+	searchResults := make([]SearchResult, 0)
+
+	for rows.Next() {
+		var path string
+		var slideId int
+		var thumbnailPng string
+		var slideNo int
+		var searchContent string
+
+		err = rows.Scan(&path, &slideId, &thumbnailPng, &slideNo, &searchContent)
+		checkErrors(err, "Failed to load column values")
+		log.Printf("Found document: %s, slide %s", path, slideNo)
+
+		startIndex := strings.Index(strings.ToLower(searchContent), strings.ToLower(query))
+
+		searchResults = append(searchResults, SearchResult{
+			fmt.Sprintf("%d", slideId),
+			slideNo,
+			path,
+			thumbnailPng,
+			SearchResultMatch{
+				searchContent,
+				startIndex,
+				len(query),
+			},
+		})
+	}
+
+	return searchResults
 }
 
 func (s *SqliteMemoryStore) GetDocumentPathForSlideId(slideId string) string {
@@ -99,7 +142,7 @@ func (s *SqliteMemoryStore) IsFileModified(path string, modifiedTime time.Time, 
 }
 
 func (s *SqliteMemoryStore) Save(document Document) {
-	log.Printf("Saving document: %s", document)
+	log.Printf("Saving document: %s", document.Path)
 
 	tx, err := s.db.Begin()
 	checkErrors(err, "Failed to begin transaction")
@@ -122,7 +165,7 @@ func (s *SqliteMemoryStore) Save(document Document) {
 	checkErrors(err, "Failed to get last insert id")
 
 	for _, slide := range document.Slides {
-		res, err = tx.Exec(`insert into slide (thumnail_png, slide, document_id) 
+		res, err = tx.Exec(`insert into slide (thumbnail_png, slide, document_id) 
 			values (?, ?, ?)`, slide.ThumbnailBase64, slide.SlideNumber, documentId)
 		checkErrors(err, "Failed to insert slide")
 		slideId, err := res.LastInsertId()
