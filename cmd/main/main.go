@@ -34,7 +34,7 @@ func main() {
 		HandlerFunc(handlers.SearchHandler(serverContext)).
 		Name("Search")
 	r.HandleFunc("/api/open/{slideId}", handlers.OpenSlideHandler(serverContext))
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("ui/dist")))
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("ui")))
 	log.Fatal(http.ListenAndServe(":8000", r))
 }
 

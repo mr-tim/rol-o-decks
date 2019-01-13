@@ -8,6 +8,5 @@ go_binary(
         '//server/handlers:handlers',
         '//store:store',
         '//third_party:gorilla_mux',
-        '//ui/dist:ui_dist',
     ]
 )
