@@ -10,4 +10,4 @@ config.json
 .plz-cache
 plz-out
 data
-elm-ui/elm-stuff
+ui/elm-stuff
