@@ -2,9 +2,13 @@ module Main exposing (main)
 
 import Browser
 import Css exposing (..)
+import Debug
 import Html
 import Html.Styled exposing (..)
 import Html.Styled.Attributes as A
+import Html.Styled.Events as E
+import Http
+import Json.Decode as D
 
 
 main : Program () Model Msg
@@ -59,8 +63,8 @@ init _ =
 
 type Msg
     = NoOp
-    | UpdatedSearchTerm
-    | FetchedSearchResults
+    | UpdatedSearchTerm String
+    | FetchedSearchResults (List SearchResult)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -69,11 +73,11 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        UpdatedSearchTerm ->
-            ( model, Cmd.none )
+        UpdatedSearchTerm term ->
+            ( { model | searchTerm = term }, getSearchResults term )
 
-        FetchedSearchResults ->
-            ( model, Cmd.none )
+        FetchedSearchResults results ->
+            ( { model | searchResults = results }, Cmd.none )
 
 
 view : Model -> Html Msg
@@ -104,6 +108,7 @@ searchBoxView model =
                 , marginBottom (rem 1)
                 , outline none
                 ]
+            , E.onInput UpdatedSearchTerm
             ]
             []
         , div [] (List.map searchResultView model.searchResults)
@@ -195,3 +200,45 @@ formattedMatchStyles =
 base64dataImage : String -> String
 base64dataImage imageData =
     "data:image/png;base64," ++ imageData
+
+
+getSearchResults : String -> Cmd Msg
+getSearchResults term =
+    Http.get
+        { url = "/api/search?q=" ++ term
+        , expect = Http.expectJson extractSearchResults searchResponseDecoder
+        }
+
+
+extractSearchResults : Result Http.Error (List SearchResult) -> Msg
+extractSearchResults result =
+    case result of
+        Ok results ->
+            FetchedSearchResults results
+
+        Err e ->
+            -- TODO: Handle errors properly
+            NoOp
+
+
+searchResponseDecoder : D.Decoder (List SearchResult)
+searchResponseDecoder =
+    D.field "results"
+        (D.list searchResultDecoder)
+
+
+searchResultDecoder : D.Decoder SearchResult
+searchResultDecoder =
+    D.map4 SearchResult
+        (D.field "path" D.string)
+        (D.field "slide" D.int)
+        (D.field "thumbnail" D.string)
+        (D.field "match" searchMatchDecoder)
+
+
+searchMatchDecoder : D.Decoder SearchMatch
+searchMatchDecoder =
+    D.map3 SearchMatch
+        (D.field "text" D.string)
+        (D.field "start" D.int)
+        (D.field "length" D.int)
