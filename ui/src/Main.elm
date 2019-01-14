@@ -33,7 +33,8 @@ type alias Model =
 
 
 type alias SearchResult =
-    { path : String
+    { slideId : String
+    , path : String
     , slide : Int
     , thumbnailBase64 : String
     , match : SearchMatch
@@ -65,6 +66,8 @@ type Msg
     = NoOp
     | UpdatedSearchTerm String
     | FetchedSearchResults (List SearchResult)
+    | OpenSlide String
+    | OpenedSlide (Result Http.Error ())
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -78,6 +81,12 @@ update msg model =
 
         FetchedSearchResults results ->
             ( { model | searchResults = results }, Cmd.none )
+
+        OpenSlide slideId ->
+            ( model, openSlide slideId )
+
+        OpenedSlide _ ->
+            ( model, Cmd.none )
 
 
 view : Model -> Html Msg
@@ -119,8 +128,12 @@ searchResultView : SearchResult -> Html Msg
 searchResultView searchResult =
     div [ searchResultStyle ]
         [ div [ thumbnailStyle ]
-            [ img [ thumbnailImgStyle, A.height 200, A.src (base64dataImage searchResult.thumbnailBase64) ] [] ]
-        , div [ matchContentStyle ]
+            [ img [ thumbnailImgStyle
+                  , A.height 200
+                  , A.src (base64dataImage searchResult.thumbnailBase64)
+                  , E.onClick (OpenSlide searchResult.slideId)
+                  ] [] ]
+        , div [ matchContentStyle, E.onClick (OpenSlide searchResult.slideId) ]
             [ div [ matchDetailsStyle ]
                 [ p [ presPathStyle ] [ text searchResult.path ]
                 , p [ slideNumStyle ] [ text ("Slide " ++ String.fromInt searchResult.slide) ]
@@ -229,7 +242,8 @@ searchResponseDecoder =
 
 searchResultDecoder : D.Decoder SearchResult
 searchResultDecoder =
-    D.map4 SearchResult
+    D.map5 SearchResult
+        (D.field "slideId" D.string)
         (D.field "path" D.string)
         (D.field "slide" D.int)
         (D.field "thumbnail" D.string)
@@ -242,3 +256,11 @@ searchMatchDecoder =
         (D.field "text" D.string)
         (D.field "start" D.int)
         (D.field "length" D.int)
+
+
+openSlide : String -> Cmd Msg
+openSlide slideId =
+    Http.get
+        { url = "/api/open/" ++ slideId
+        , expect = Http.expectWhatever OpenedSlide
+        }
