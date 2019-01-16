@@ -2,8 +2,6 @@ module Main exposing (main)
 
 import Browser
 import Css exposing (..)
-import Debug
-import Html
 import Html.Styled exposing (..)
 import Html.Styled.Attributes as A
 import Html.Styled.Events as E
