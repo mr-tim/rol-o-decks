@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"indexer"
 	"log"
@@ -10,6 +11,7 @@ import (
 	"os/user"
 	"server/handlers"
 	"store"
+	"ui"
 )
 
 type Config struct {
@@ -34,7 +36,12 @@ func main() {
 		HandlerFunc(handlers.SearchHandler(serverContext)).
 		Name("Search")
 	r.HandleFunc("/api/open/{slideId}", handlers.OpenSlideHandler(serverContext))
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("ui")))
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, ui.Ui_indexHtml())
+	})
+	r.HandleFunc("/ui.min.js", func (w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, ui.Ui_uiMinJs())
+	})
 	log.Fatal(http.ListenAndServe(":8000", r))
 }
 
