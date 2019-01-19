@@ -11,5 +11,3 @@ config.json
 plz-out
 data
 ui/elm-stuff
-ui/ui.js
-ui/ui.min.js

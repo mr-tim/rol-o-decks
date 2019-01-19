@@ -11,7 +11,7 @@ import (
 	"os/user"
 	"server/handlers"
 	"store"
-	"ui"
+	"ui/ui_bundle"
 )
 
 type Config struct {
@@ -37,10 +37,10 @@ func main() {
 		Name("Search")
 	r.HandleFunc("/api/open/{slideId}", handlers.OpenSlideHandler(serverContext))
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, ui.Ui_indexHtml())
+		fmt.Fprint(w, ui_bundle.Ui_indexHtml())
 	})
 	r.HandleFunc("/ui.min.js", func (w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, ui.Ui_uiMinJs())
+		fmt.Fprint(w, ui_bundle.Ui_uiMinJs())
 	})
 	log.Fatal(http.ListenAndServe(":8000", r))
 }
