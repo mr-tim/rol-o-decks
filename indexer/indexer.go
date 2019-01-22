@@ -193,7 +193,7 @@ func generateThumbnail(document string, slideNumber int) string {
 	log.Printf("Writing thumbnail doc to %s", slideFileName)
 	createSingleSlideDocument(slideFileName, document, slideNumber)
 	// generate the thumbnail
-	cmd := exec.Command("qlmanage", "-t", "-s", "400", "-o", "/tmp", slideFileName)
+	cmd := exec.Command("qlmanage", "-t", "-s", "267", "-o", "/tmp", slideFileName)
 	e := cmd.Run()
 	if e != nil {
 		// TODO: handle error
