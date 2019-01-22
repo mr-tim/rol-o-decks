@@ -88,7 +88,8 @@ func doIndex(slideStore store.SlideStore, fileToIndex string) {
 	log.Printf("Indexing %s", fileToIndex)
 	r, err := zip.OpenReader(fileToIndex)
 	if err != nil {
-		log.Printf("Error whilst opening pptx file: %s", err)
+		log.Printf("Error whilst opening pptx file - skipping indexing: %s", err)
+		return
 	}
 	defer r.Close()
 
