@@ -126,11 +126,14 @@ searchResultView : SearchResult -> Html Msg
 searchResultView searchResult =
     div [ searchResultStyle ]
         [ div [ thumbnailStyle ]
-            [ img [ thumbnailImgStyle
-                  , A.height 200
-                  , A.src (base64dataImage searchResult.thumbnailBase64)
-                  , E.onClick (OpenSlide searchResult.slideId)
-                  ] [] ]
+            [ img
+                [ thumbnailImgStyle
+                , A.height 200
+                , A.src (base64dataImage searchResult.thumbnailBase64)
+                , E.onClick (OpenSlide searchResult.slideId)
+                ]
+                []
+            ]
         , div [ matchContentStyle, E.onClick (OpenSlide searchResult.slideId) ]
             [ div [ matchDetailsStyle ]
                 [ p [ presPathStyle ] [ text searchResult.path ]
