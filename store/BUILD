@@ -1,7 +1,6 @@
 go_library(
     name = 'store',
     srcs = [
-        'in_memory.go',
         'models.go',
         'sqlite.go',
         'store.go',
