@@ -13,13 +13,18 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"server/handlers"
 	"sort"
 	"store"
 	"strconv"
 	"strings"
 )
 
-func IndexPaths(s store.SlideStore, paths ...string) {
+func IndexPaths(ctx handlers.ServerContext) {
+	doIndexPaths(ctx.Store)
+}
+
+func doIndexPaths(s store.SlideStore) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
@@ -57,6 +62,8 @@ func IndexPaths(s store.SlideStore, paths ...string) {
 			}
 		}
 	}()
+
+	paths := s.GetIndexPaths()
 
 	for _, path := range paths {
 		log.Printf("Starting index %s", path)

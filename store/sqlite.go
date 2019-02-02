@@ -2,8 +2,10 @@ package store
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os/user"
 	"strings"
 	"time"
 
@@ -14,7 +16,13 @@ type SqliteMemoryStore struct {
 	db *sql.DB
 }
 
-func NewSqliteStore(uri string) *SqliteMemoryStore {
+func NewSqliteStore() *SqliteMemoryStore {
+	u, err := user.Current()
+	if err != nil {
+		panic("Could not determine home directory!")
+	}
+	uri := u.HomeDir + "/.rolodecks/rolodecks.sqlite"
+
 	db := ensureDatabasePresent(uri)
 
 	return &SqliteMemoryStore{db}
@@ -27,7 +35,16 @@ func ensureDatabasePresent(uri string) *sql.DB {
 	}
 	db.SetMaxOpenConns(1)
 
-	s, err := db.Prepare(`CREATE TABLE IF NOT EXISTS document (
+	s, err := db.Prepare(`CREATE TABLE IF NOT EXISTS setting (
+  		key VARCHAR,
+  		value VARCHAR,
+  		PRIMARY KEY (key)
+  	)`)
+	checkErrors(err, "Failed to create settings table DML")
+	_, err = s.Exec()
+	checkErrors(err, "Failed to creat settings table")
+
+	s, err = db.Prepare(`CREATE TABLE IF NOT EXISTS document (
 	id INTEGER NOT NULL,
 		path VARCHAR,
 		created DATETIME,
@@ -175,6 +192,47 @@ func (s *SqliteMemoryStore) Save(document Document) {
 			slideId, slide.TextContent)
 		checkErrors(err, "Failed to index slide text content")
 	}
+
+	err = tx.Commit()
+	checkErrors(err, "Failed to commit transaction")
+}
+
+const IndexPathsSettingKey = "index_paths"
+
+func (s *SqliteMemoryStore) GetIndexPaths() []string {
+	var paths []string
+	s.getSetting(IndexPathsSettingKey, &paths)
+	return paths
+}
+
+func (s *SqliteMemoryStore) getSetting(settingKey string, value interface{}) {
+	rows, err := s.db.Query(`select value from setting where key = ?`, settingKey)
+	defer rows.Close()
+	if rows.Next() {
+		var jsonStr []byte
+		err = rows.Scan(&jsonStr)
+		checkErrors(err, "Failed to load setting")
+		err = json.Unmarshal(jsonStr, value)
+		checkErrors(err, "Failed to deseriailize setting")
+	}
+}
+
+func (s *SqliteMemoryStore) SetIndexPaths(paths []string) {
+	s.setSetting(IndexPathsSettingKey, &paths)
+
+}
+
+func (s *SqliteMemoryStore) setSetting(settingKey string, value interface{}) {
+	tx, err := s.db.Begin()
+
+	_, err = tx.Exec(`delete from setting where key = ?`, settingKey)
+	checkErrors(err, "Failed to delete existing setting")
+
+	serialized, err := json.Marshal(value)
+	checkErrors(err, "Failed to serialize setting")
+
+	_, err = tx.Exec(`insert into setting (key, value) values (?, ?)`, settingKey, serialized)
+	checkErrors(err, "Failed to insert setting")
 
 	err = tx.Commit()
 	checkErrors(err, "Failed to commit transaction")

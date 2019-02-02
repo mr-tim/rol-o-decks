@@ -4,6 +4,7 @@ go_library(
         'indexer.go',
     ],
     deps = [
+        '//server/handlers:handlers',
         '//store:store',
         '//third_party:fsnotify',
         '//third_party:xmlpath',

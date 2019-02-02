@@ -9,5 +9,6 @@ go_library(
     ],
     visibility = [
         '//cmd/main',
+        '//indexer',
     ]
 )

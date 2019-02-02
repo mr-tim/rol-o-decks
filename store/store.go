@@ -21,4 +21,6 @@ type SlideStore interface {
 	GetDocumentPathForSlideId(slideId string) string
 	IsFileModified(path string, modifiedTime time.Time, fileSize int64) bool
 	Save(document Document)
+	GetIndexPaths() []string
+	SetIndexPaths(paths []string)
 }
