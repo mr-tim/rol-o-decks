@@ -21,10 +21,24 @@ import (
 )
 
 func IndexPaths(ctx handlers.ServerContext) {
-	doIndexPaths(ctx.Store)
+	done := make(chan bool)
+	go doIndexPaths(ctx.Store, done)
+
+	go func() {
+		for {
+			select {
+			case _, ok := <-ctx.RestartIndexing:
+				done <- true
+				if !ok {
+					return
+				}
+				go doIndexPaths(ctx.Store, done)
+			}
+		}
+	}()
 }
 
-func doIndexPaths(s store.SlideStore) {
+func doIndexPaths(s store.SlideStore, done chan bool) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
@@ -38,7 +52,6 @@ func doIndexPaths(s store.SlideStore) {
 		go indexingWorker(filesToIndex, s)
 	}
 
-	done := make(chan bool)
 	go func() {
 		for {
 			select {
@@ -77,6 +90,8 @@ func doIndexPaths(s store.SlideStore) {
 	}
 
 	<-done
+	log.Println("Stopping indexers...")
+	close(filesToIndex)
 }
 
 func indexingWorker(filesToIndex <-chan string, slideStore store.SlideStore) {
@@ -84,6 +99,7 @@ func indexingWorker(filesToIndex <-chan string, slideStore store.SlideStore) {
 		select {
 		case fileToIndex, moreFiles := <-filesToIndex:
 			if !moreFiles {
+				log.Println("Worker finished")
 				return
 			}
 			doIndex(slideStore, fileToIndex)
