@@ -2,6 +2,7 @@ module Main exposing (main)
 
 import Browser
 import Css exposing (..)
+import Html.Entity
 import Html.Styled exposing (..)
 import Html.Styled.Attributes as A
 import Html.Styled.Events as E
@@ -27,6 +28,8 @@ main =
 type alias Model =
     { searchTerm : String
     , searchResults : List SearchResult
+    , settings : Settings
+    , showSettings: Bool
     }
 
 
@@ -45,18 +48,26 @@ type alias SearchMatch =
     , length : Int
     }
 
+type alias Settings =
+    { searchPaths : List String
+    }
+
 
 emptyModel : Model
 emptyModel =
     { searchTerm = ""
     , searchResults = []
+    , settings = {
+        searchPaths = []
+    }
+    , showSettings = True
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( emptyModel
-    , Cmd.none
+    , fetchSettings
     )
 
 
@@ -66,6 +77,9 @@ type Msg
     | FetchedSearchResults (List SearchResult)
     | OpenSlide String
     | OpenedSlide (Result Http.Error ())
+    | FetchedSettings Settings
+    | ShowSettingsModal
+    | HideSettingsModal
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -86,11 +100,20 @@ update msg model =
         OpenedSlide _ ->
             ( model, Cmd.none )
 
+        FetchedSettings settings ->
+            ( { model | settings = settings }, Cmd.none )
+
+        ShowSettingsModal ->
+            ( { model | showSettings = True }, Cmd.none )
+
+        HideSettingsModal ->
+            ( { model | showSettings = False }, Cmd.none )
+
 
 view : Model -> Html Msg
 view model =
     div [ A.css [ fontFamilies [ "Arial" ] ] ]
-        [ searchBoxView model ]
+        (searchBoxView model :: settingsDialog model)
 
 
 searchBoxView : Model -> Html Msg
@@ -104,20 +127,42 @@ searchBoxView model =
             , marginRight auto
             ]
         ]
-        [ input
-            [ A.placeholder "Search for presentation..."
-            , A.type_ "text"
-            , A.css
-                [ border3 (px 1) solid (hex "ddd")
-                , greyShadow
-                , fontSize (rem 1.8)
-                , padding (rem 0.5)
-                , marginBottom (rem 1)
-                , outline none
+        [ div
+            [ A.css
+                [ displayFlex
+                , flexDirection row
+                , alignItems baseline
                 ]
-            , E.onInput UpdatedSearchTerm
             ]
-            []
+            [ input
+                [ A.placeholder "Search for presentation..."
+                , A.type_ "text"
+                , A.css
+                    [ border3 (px 1) solid (hex "ddd")
+                    , greyShadow
+                    , fontSize (rem 1.8)
+                    , padding (rem 0.5)
+                    , marginBottom (rem 1)
+                    , outline none
+                    , flexGrow (num 1)
+                    ]
+                , E.onInput UpdatedSearchTerm
+                ]
+                [ ]
+            , span
+                [ A.css
+                    [ flexGrow (num 0)
+                    , fontSize (px 30)
+                    , fontWeight bold
+                    , width (px 20)
+                    , textAlign right
+                    , hover undecoratedPointer
+                    , focus undecoratedPointer
+                    ]
+                , E.onClick ShowSettingsModal
+                ]
+                [ text Html.Entity.vellip ]
+            ]
         , div [] (List.map searchResultView model.searchResults)
         ]
 
@@ -216,6 +261,61 @@ base64dataImage imageData =
     "data:image/png;base64," ++ imageData
 
 
+settingsDialog : Model -> List (Html Msg)
+settingsDialog model =
+    if model.showSettings then
+        [div [ modalBackgroundStyle ]
+            [ modalContent model ] ]
+    else
+        []
+
+modalBackgroundStyle : Html.Styled.Attribute msg
+modalBackgroundStyle =
+    A.css [ position fixed
+    , left (px 0)
+    , top (px 0)
+    , width (pct 100)
+    , height (pct 100)
+    , backgroundColor (rgba 0 0 0 0.4)]
+
+modalContent : Model -> Html Msg
+modalContent model =
+    div [modalContentStyle]
+        [ span [ closeStyle, E.onClick HideSettingsModal ] [ text Html.Entity.times ]
+        , h4 [] [ text "Settings" ]
+        , h5 [] [ text "Search Paths" ]
+        , div [] (List.map searchPathControl model.settings.searchPaths)
+        ]
+
+modalContentStyle : Html.Styled.Attribute msg
+modalContentStyle =
+    A.css [ backgroundColor (rgb 230 230 230)
+        , color (rgb 40 40 40)
+        , marginTop (rem 5)
+        , marginLeft auto
+        , marginRight auto
+        , maxWidth (rem 48)
+        , padding (rem 1)]
+
+closeStyle : Html.Styled.Attribute msg
+closeStyle =
+    A.css [ float right
+        , fontWeight bold
+        , fontSize (px 24)
+        , hover undecoratedPointer
+        , focus undecoratedPointer
+        ]
+
+undecoratedPointer : List Style
+undecoratedPointer =
+    [ cursor pointer
+    , textDecoration none
+    ]
+
+searchPathControl : String -> Html msg
+searchPathControl path =
+    p [] [ text path ]
+
 getSearchResults : String -> Cmd Msg
 getSearchResults term =
     Http.get
@@ -265,3 +365,29 @@ openSlide slideId =
         { url = "/api/open/" ++ slideId
         , expect = Http.expectWhatever OpenedSlide
         }
+
+
+fetchSettings : Cmd Msg
+fetchSettings =
+    Http.get
+        { url = "/api/settings"
+        , expect = Http.expectJson extractSettings settingsDecoder
+        }
+
+
+extractSettings : Result Http.Error Settings -> Msg
+extractSettings result =
+    case result of
+        Ok settings ->
+            FetchedSettings settings
+
+        Err e ->
+            -- TODO: Handle errors properly
+            NoOp
+
+
+settingsDecoder : D.Decoder Settings
+settingsDecoder =
+    D.field "indexPaths"
+        (D.map Settings
+            (D.list D.string))
