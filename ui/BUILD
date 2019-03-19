@@ -34,11 +34,9 @@ def elm_build(name, srcs=[], elm_json):
         srcs={'json':[elm_json]},
         cmd=[
             f'$TOOL --stuff',
-            'cp -r $PKG_DIR/elm-stuff .',
-            'find .elm -type f'
+            'cp -r $PKG_DIR/elm-stuff .'
         ],
-        outs=['elm-stuff/0.19.0/summary.dat'],
-        post_build=lambda rule_name, output: [add_out(rule_name, out) for out in output if out.startswith('.elm')],
+        outs=['.elm'],
     )
 
     compiled_elm_output=f'{name}_built.js'
