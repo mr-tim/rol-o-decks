@@ -10,6 +10,6 @@ go_library(
         '//third_party:xmlpath',
     ],
     visibility = [
-        '//cmd/main'
+        '//cmd/main:rol-o-decks'
     ]
 )

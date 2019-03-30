@@ -1,5 +1,5 @@
 go_binary(
-    name = 'main',
+    name = 'rol-o-decks',
     srcs = [
         'main.go',
     ],

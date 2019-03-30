@@ -8,7 +8,7 @@ go_library(
         '//third_party:gorilla_mux',
     ],
     visibility = [
-        '//cmd/main',
+        '//cmd/main:rol-o-decks',
         '//indexer',
     ]
 )

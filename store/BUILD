@@ -9,7 +9,7 @@ go_library(
         '//third_party:sqlite3',
     ],
     visibility = [
-        '//cmd/main',
+        '//cmd/main:rol-o-decks',
         '//indexer',
         '//server/handlers',
     ]

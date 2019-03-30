@@ -68,7 +68,7 @@ def elm_build(name, srcs=[], elm_json):
 bundled_files(
     name='ui_bundle',
     srcs=['index.html', ':ui'],
-    visibility=['//cmd/main']
+    visibility=['//cmd/main:rol-o-decks']
 )
 
 elm_build(
