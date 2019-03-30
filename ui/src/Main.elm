@@ -30,7 +30,7 @@ type alias Model =
     , searchResults : List SearchResult
     , settings : Settings
     , previousSettings : Settings
-    , showSettings: Bool
+    , showSettings : Bool
     }
 
 
@@ -49,6 +49,7 @@ type alias SearchMatch =
     , length : Int
     }
 
+
 type alias Settings =
     { searchPaths : List String
     }
@@ -62,6 +63,7 @@ emptyModel =
     , previousSettings = emptySettings
     , showSettings = False
     }
+
 
 emptySettings : Settings
 emptySettings =
@@ -115,47 +117,68 @@ update msg model =
 
         ShowSettingsModal ->
             let
-                p = model.settings
+                p =
+                    model.settings
             in
-                ( { model |
-                    showSettings = True,
-                    previousSettings = p }, Cmd.none )
+            ( { model
+                | showSettings = True
+                , previousSettings = p
+              }
+            , Cmd.none
+            )
 
         HideSettingsModal ->
             ( { model | showSettings = False }, Cmd.none )
 
         CancelSettings ->
             let
-                revertedSettings = { model | settings = model.previousSettings }
+                revertedSettings =
+                    { model | settings = model.previousSettings }
             in
-                revertedSettings |> update HideSettingsModal
+            revertedSettings |> update HideSettingsModal
 
         SaveSettings ->
             model |> update HideSettingsModal
 
         AddSearchPath ->
             let
-                s = model.settings
-                updatedSearchPaths = List.append s.searchPaths [""]
-                updatedSettings = { s | searchPaths = updatedSearchPaths }
+                s =
+                    model.settings
+
+                updatedSearchPaths =
+                    List.append s.searchPaths [ "" ]
+
+                updatedSettings =
+                    { s | searchPaths = updatedSearchPaths }
             in
-                ( { model | settings = updatedSettings } , Cmd.none )
+            ( { model | settings = updatedSettings }, Cmd.none )
 
         RemoveSearchPathAtIndex index ->
             let
-                s = model.settings
-                updatedSearchPaths = removeValueAtIndex index s.searchPaths
-                updatedSettings = { s | searchPaths = updatedSearchPaths }
+                s =
+                    model.settings
+
+                updatedSearchPaths =
+                    removeValueAtIndex index s.searchPaths
+
+                updatedSettings =
+                    { s | searchPaths = updatedSearchPaths }
             in
-                ( { model | settings = updatedSettings }, Cmd.none)
+            ( { model | settings = updatedSettings }, Cmd.none )
 
         UpdateSearchPathAtIndex index updatedValue ->
             let
-                s = model.settings
-                updatedSearchPaths = updateValueAtIndex index updatedValue s.searchPaths
-                updatedSettings = { s | searchPaths = updatedSearchPaths }
+                s =
+                    model.settings
+
+                updatedSearchPaths =
+                    updateValueAtIndex index updatedValue s.searchPaths
+
+                updatedSettings =
+                    { s | searchPaths = updatedSearchPaths }
             in
-                ( { model | settings = updatedSettings }, Cmd.none )
+            ( { model | settings = updatedSettings }, Cmd.none )
+
 
 removeValueAtIndex : Int -> List a -> List a
 removeValueAtIndex index list =
@@ -163,10 +186,12 @@ removeValueAtIndex index list =
         remover itemIndex value =
             if itemIndex == index then
                 []
+
             else
-                [value]
+                [ value ]
     in
-        List.concat (List.indexedMap remover list)
+    List.concat (List.indexedMap remover list)
+
 
 updateValueAtIndex : Int -> a -> List a -> List a
 updateValueAtIndex index newValue values =
@@ -174,10 +199,12 @@ updateValueAtIndex index newValue values =
         updater itemIndex item =
             if itemIndex == index then
                 newValue
+
             else
                 item
     in
-        List.indexedMap updater values
+    List.indexedMap updater values
+
 
 view : Model -> Html Msg
 view model =
@@ -217,7 +244,7 @@ searchBoxView model =
                     ]
                 , E.onInput UpdatedSearchTerm
                 ]
-                [ ]
+                []
             , span
                 [ A.css
                     [ flexGrow (num 0)
@@ -333,23 +360,29 @@ base64dataImage imageData =
 settingsDialog : Model -> List (Html Msg)
 settingsDialog model =
     if model.showSettings then
-        [div [ modalBackgroundStyle ]
-            [ modalContent model ] ]
+        [ div [ modalBackgroundStyle ]
+            [ modalContent model ]
+        ]
+
     else
         []
 
+
 modalBackgroundStyle : Html.Styled.Attribute msg
 modalBackgroundStyle =
-    A.css [ position fixed
-    , left (px 0)
-    , top (px 0)
-    , width (pct 100)
-    , height (pct 100)
-    , backgroundColor (rgba 0 0 0 0.4)]
+    A.css
+        [ position fixed
+        , left (px 0)
+        , top (px 0)
+        , width (pct 100)
+        , height (pct 100)
+        , backgroundColor (rgba 0 0 0 0.4)
+        ]
+
 
 modalContent : Model -> Html Msg
 modalContent model =
-    div [modalContentStyle]
+    div [ modalContentStyle ]
         [ span [ closeStyle, E.onClick CancelSettings ] [ text Html.Entity.times ]
         , h3 [] [ text "Settings" ]
         , h4 [] [ text "Search Paths" ]
@@ -358,30 +391,37 @@ modalContent model =
         , settingsDialogButtons model.settings
         ]
 
+
 modalContentStyle : Html.Styled.Attribute msg
 modalContentStyle =
-    A.css [ backgroundColor (rgb 230 230 230)
+    A.css
+        [ backgroundColor (rgb 230 230 230)
         , color (rgb 40 40 40)
         , marginTop (rem 5)
         , marginLeft auto
         , marginRight auto
         , maxWidth (rem 48)
-        , padding (rem 1)]
+        , padding (rem 1)
+        ]
+
 
 closeStyle : Html.Styled.Attribute msg
 closeStyle =
-    A.css [ float right
+    A.css
+        [ float right
         , fontWeight bold
         , fontSize (px 24)
         , hover undecoratedPointer
         , focus undecoratedPointer
         ]
 
+
 undecoratedPointer : List Style
 undecoratedPointer =
     [ cursor pointer
     , textDecoration none
     ]
+
 
 searchPathControl : Int -> String -> Html Msg
 searchPathControl index path =
@@ -390,24 +430,29 @@ searchPathControl index path =
             [ A.css [ fontSize (px 20), flexGrow (num 1) ]
             , E.onInput (UpdateSearchPathAtIndex index)
             , A.width 100
-            , A.value path ]
+            , A.value path
+            ]
             [ text path ]
         , button
             [ E.onClick (RemoveSearchPathAtIndex index)
-            , removeSearchPathStyle ]
+            , removeSearchPathStyle
+            ]
             [ text Html.Entity.times ]
         ]
+
 
 removeSearchPathStyle : Html.Styled.Attribute msg
 removeSearchPathStyle =
     A.css
         [ fontSize (px 20) ]
 
+
 addSearchPath : Html Msg
 addSearchPath =
     button
         [ E.onClick AddSearchPath ]
         [ text "Add Search Path" ]
+
 
 settingsDialogButtons : Settings -> Html Msg
 settingsDialogButtons settings =
@@ -419,6 +464,7 @@ settingsDialogButtons settings =
             [ E.onClick SaveSettings ]
             [ text "Save" ]
         ]
+
 
 getSearchResults : String -> Cmd Msg
 getSearchResults term =
@@ -494,4 +540,5 @@ settingsDecoder : D.Decoder Settings
 settingsDecoder =
     D.field "indexPaths"
         (D.map Settings
-            (D.list D.string))
+            (D.list D.string)
+        )
