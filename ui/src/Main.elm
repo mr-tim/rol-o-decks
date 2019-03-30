@@ -52,7 +52,7 @@ type alias SearchMatch =
 
 
 type alias Settings =
-    { searchPaths : List String
+    { indexPaths : List String
     }
 
 
@@ -68,7 +68,7 @@ emptyModel =
 
 emptySettings : Settings
 emptySettings =
-    { searchPaths = []
+    { indexPaths = []
     }
 
 
@@ -90,10 +90,10 @@ type Msg
     | HideSettingsModal
     | CancelSettings
     | SaveSettings
-    | SavedSearchPaths (List String)
-    | AddSearchPath
-    | UpdateSearchPathAtIndex Int String
-    | RemoveSearchPathAtIndex Int
+    | SavedIndexPaths (List String)
+    | AddIndexPath
+    | UpdateIndexPathAtIndex Int String
+    | RemoveIndexPathAtIndex Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -140,54 +140,54 @@ update msg model =
             revertedSettings |> update HideSettingsModal
 
         SaveSettings ->
-            ( model, saveSearchPaths model.settings.searchPaths )
+            ( model, saveIndexPaths model.settings.indexPaths )
 
-        SavedSearchPaths searchPaths ->
+        SavedIndexPaths indexPaths ->
             let
                 settings =
                     model.settings
 
                 updatedSettings =
-                    { settings | searchPaths = searchPaths }
+                    { settings | indexPaths = indexPaths }
             in
             { model | settings = updatedSettings } |> update HideSettingsModal
 
-        AddSearchPath ->
+        AddIndexPath ->
             let
                 s =
                     model.settings
 
-                updatedSearchPaths =
-                    List.append s.searchPaths [ "" ]
+                updatedIndexPaths =
+                    List.append s.indexPaths [ "" ]
 
                 updatedSettings =
-                    { s | searchPaths = updatedSearchPaths }
+                    { s | indexPaths = updatedIndexPaths }
             in
             ( { model | settings = updatedSettings }, Cmd.none )
 
-        RemoveSearchPathAtIndex index ->
+        RemoveIndexPathAtIndex index ->
             let
                 s =
                     model.settings
 
-                updatedSearchPaths =
-                    removeValueAtIndex index s.searchPaths
+                updatedIndexPaths =
+                    removeValueAtIndex index s.indexPaths
 
                 updatedSettings =
-                    { s | searchPaths = updatedSearchPaths }
+                    { s | indexPaths = updatedIndexPaths }
             in
             ( { model | settings = updatedSettings }, Cmd.none )
 
-        UpdateSearchPathAtIndex index updatedValue ->
+        UpdateIndexPathAtIndex index updatedValue ->
             let
                 s =
                     model.settings
 
-                updatedSearchPaths =
-                    updateValueAtIndex index updatedValue s.searchPaths
+                updatedIndexPaths =
+                    updateValueAtIndex index updatedValue s.indexPaths
 
                 updatedSettings =
-                    { s | searchPaths = updatedSearchPaths }
+                    { s | indexPaths = updatedIndexPaths }
             in
             ( { model | settings = updatedSettings }, Cmd.none )
 
@@ -397,10 +397,10 @@ modalContent model =
     div [ modalContentStyle ]
         [ span [ closeStyle, E.onClick CancelSettings ] [ text Html.Entity.times ]
         , h3 [] [ text "Settings" ]
-        , h4 [] [ text "Search Paths" ]
+        , h4 [] [ text "Index Paths" ]
         , div []
             ([ p [] [ text "Any paths listed below will be indexed for presentations." ] ]
-                ++ List.indexedMap searchPathControl model.settings.searchPaths
+                ++ List.indexedMap indexPathControl model.settings.indexPaths
             )
         , settingsDialogButtons
         ]
@@ -437,26 +437,26 @@ undecoratedPointer =
     ]
 
 
-searchPathControl : Int -> String -> Html Msg
-searchPathControl index path =
+indexPathControl : Int -> String -> Html Msg
+indexPathControl index path =
     div [ A.css [ displayFlex ] ]
         [ input
             [ A.css [ fontSize (px 15), flexGrow (num 1) ]
-            , E.onInput (UpdateSearchPathAtIndex index)
+            , E.onInput (UpdateIndexPathAtIndex index)
             , A.width 100
             , A.value path
             ]
             [ text path ]
         , button
-            [ E.onClick (RemoveSearchPathAtIndex index)
-            , removeSearchPathStyle
+            [ E.onClick (RemoveIndexPathAtIndex index)
+            , removeIndexPathStyle
             ]
             [ text Html.Entity.times ]
         ]
 
 
-removeSearchPathStyle : Html.Styled.Attribute msg
-removeSearchPathStyle =
+removeIndexPathStyle : Html.Styled.Attribute msg
+removeIndexPathStyle =
     A.css
         [ fontSize (px 15) ]
 
@@ -470,7 +470,7 @@ settingsDialogButtons =
             , marginTop (px 4)
             ]
         ]
-        [ addSearchPath
+        [ addIndexPath
         , button
             [ cancelButtonStyle, E.onClick CancelSettings ]
             [ text "Cancel" ]
@@ -480,15 +480,15 @@ settingsDialogButtons =
         ]
 
 
-addSearchPath : Html Msg
-addSearchPath =
+addIndexPath : Html Msg
+addIndexPath =
     button
-        [ addSearchPathStyle, E.onClick AddSearchPath ]
-        [ text "Add Search Path" ]
+        [ addIndexPathStyle, E.onClick AddIndexPath ]
+        [ text "Add Index Path" ]
 
 
-addSearchPathStyle : Html.Styled.Attribute msg
-addSearchPathStyle =
+addIndexPathStyle : Html.Styled.Attribute msg
+addIndexPathStyle =
     A.css
         buttonBase
 
@@ -600,11 +600,11 @@ settingsDecoder =
         )
 
 
-saveSearchPaths : List String -> Cmd Msg
-saveSearchPaths searchPaths =
+saveIndexPaths : List String -> Cmd Msg
+saveIndexPaths indexPaths =
     let
         body =
-            searchPaths
+            indexPaths
                 |> Encode.list Encode.string
                 |> Http.jsonBody
     in
@@ -613,17 +613,17 @@ saveSearchPaths searchPaths =
         , headers = []
         , url = "/api/settings/indexPaths"
         , body = body
-        , expect = Http.expectJson extractSearchPaths (D.list D.string)
+        , expect = Http.expectJson extractIndexPaths (D.list D.string)
         , timeout = Nothing
         , tracker = Nothing
         }
 
 
-extractSearchPaths : Result Http.Error (List String) -> Msg
-extractSearchPaths result =
+extractIndexPaths : Result Http.Error (List String) -> Msg
+extractIndexPaths result =
     case result of
-        Ok searchPaths ->
-            SavedSearchPaths searchPaths
+        Ok indexPaths ->
+            SavedIndexPaths indexPaths
 
         Err e ->
             -- TODO: Handle errors properly
