@@ -8,6 +8,7 @@ import Html.Styled.Attributes as A
 import Html.Styled.Events as E
 import Http
 import Json.Decode as D
+import Json.Encode as Encode
 
 
 main : Program () Model Msg
@@ -89,6 +90,7 @@ type Msg
     | HideSettingsModal
     | CancelSettings
     | SaveSettings
+    | SavedSearchPaths (List String)
     | AddSearchPath
     | UpdateSearchPathAtIndex Int String
     | RemoveSearchPathAtIndex Int
@@ -138,7 +140,17 @@ update msg model =
             revertedSettings |> update HideSettingsModal
 
         SaveSettings ->
-            model |> update HideSettingsModal
+            ( model, saveSearchPaths model.settings.searchPaths )
+
+        SavedSearchPaths searchPaths ->
+            let
+                settings =
+                    model.settings
+
+                updatedSettings =
+                    { settings | searchPaths = searchPaths }
+            in
+            { model | settings = updatedSettings } |> update HideSettingsModal
 
         AddSearchPath ->
             let
@@ -542,3 +554,33 @@ settingsDecoder =
         (D.map Settings
             (D.list D.string)
         )
+
+
+saveSearchPaths : List String -> Cmd Msg
+saveSearchPaths searchPaths =
+    let
+        body =
+            searchPaths
+                |> Encode.list Encode.string
+                |> Http.jsonBody
+    in
+    Http.request
+        { method = "PUT"
+        , headers = []
+        , url = "/api/settings/indexPaths"
+        , body = body
+        , expect = Http.expectJson extractSearchPaths (D.list D.string)
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
+
+extractSearchPaths : Result Http.Error (List String) -> Msg
+extractSearchPaths result =
+    case result of
+        Ok searchPaths ->
+            SavedSearchPaths searchPaths
+
+        Err e ->
+            -- TODO: Handle errors properly
+            NoOp
