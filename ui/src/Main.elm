@@ -29,6 +29,7 @@ type alias Model =
     { searchTerm : String
     , searchResults : List SearchResult
     , settings : Settings
+    , previousSettings : Settings
     , showSettings: Bool
     }
 
@@ -57,10 +58,14 @@ emptyModel : Model
 emptyModel =
     { searchTerm = ""
     , searchResults = []
-    , settings = {
-        searchPaths = []
+    , settings = emptySettings
+    , previousSettings = emptySettings
+    , showSettings = False
     }
-    , showSettings = True
+
+emptySettings : Settings
+emptySettings =
+    { searchPaths = []
     }
 
 
@@ -80,6 +85,11 @@ type Msg
     | FetchedSettings Settings
     | ShowSettingsModal
     | HideSettingsModal
+    | CancelSettings
+    | SaveSettings
+    | AddSearchPath
+    | UpdateSearchPathAtIndex Int String
+    | RemoveSearchPathAtIndex Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -104,11 +114,70 @@ update msg model =
             ( { model | settings = settings }, Cmd.none )
 
         ShowSettingsModal ->
-            ( { model | showSettings = True }, Cmd.none )
+            let
+                p = model.settings
+            in
+                ( { model |
+                    showSettings = True,
+                    previousSettings = p }, Cmd.none )
 
         HideSettingsModal ->
             ( { model | showSettings = False }, Cmd.none )
 
+        CancelSettings ->
+            let
+                revertedSettings = { model | settings = model.previousSettings }
+            in
+                revertedSettings |> update HideSettingsModal
+
+        SaveSettings ->
+            model |> update HideSettingsModal
+
+        AddSearchPath ->
+            let
+                s = model.settings
+                updatedSearchPaths = List.append s.searchPaths [""]
+                updatedSettings = { s | searchPaths = updatedSearchPaths }
+            in
+                ( { model | settings = updatedSettings } , Cmd.none )
+
+        RemoveSearchPathAtIndex index ->
+            let
+                s = model.settings
+                updatedSearchPaths = removeValueAtIndex index s.searchPaths
+                updatedSettings = { s | searchPaths = updatedSearchPaths }
+            in
+                ( { model | settings = updatedSettings }, Cmd.none)
+
+        UpdateSearchPathAtIndex index updatedValue ->
+            let
+                s = model.settings
+                updatedSearchPaths = updateValueAtIndex index updatedValue s.searchPaths
+                updatedSettings = { s | searchPaths = updatedSearchPaths }
+            in
+                ( { model | settings = updatedSettings }, Cmd.none )
+
+removeValueAtIndex : Int -> List a -> List a
+removeValueAtIndex index list =
+    let
+        remover itemIndex value =
+            if itemIndex == index then
+                []
+            else
+                [value]
+    in
+        List.concat (List.indexedMap remover list)
+
+updateValueAtIndex : Int -> a -> List a -> List a
+updateValueAtIndex index newValue values =
+    let
+        updater itemIndex item =
+            if itemIndex == index then
+                newValue
+            else
+                item
+    in
+        List.indexedMap updater values
 
 view : Model -> Html Msg
 view model =
@@ -281,10 +350,12 @@ modalBackgroundStyle =
 modalContent : Model -> Html Msg
 modalContent model =
     div [modalContentStyle]
-        [ span [ closeStyle, E.onClick HideSettingsModal ] [ text Html.Entity.times ]
-        , h4 [] [ text "Settings" ]
-        , h5 [] [ text "Search Paths" ]
-        , div [] (List.map searchPathControl model.settings.searchPaths)
+        [ span [ closeStyle, E.onClick CancelSettings ] [ text Html.Entity.times ]
+        , h3 [] [ text "Settings" ]
+        , h4 [] [ text "Search Paths" ]
+        , div [] (List.indexedMap searchPathControl model.settings.searchPaths)
+        , addSearchPath
+        , settingsDialogButtons model.settings
         ]
 
 modalContentStyle : Html.Styled.Attribute msg
@@ -312,9 +383,42 @@ undecoratedPointer =
     , textDecoration none
     ]
 
-searchPathControl : String -> Html msg
-searchPathControl path =
-    p [] [ text path ]
+searchPathControl : Int -> String -> Html Msg
+searchPathControl index path =
+    div [ A.css [ displayFlex ] ]
+        [ input
+            [ A.css [ fontSize (px 20), flexGrow (num 1) ]
+            , E.onInput (UpdateSearchPathAtIndex index)
+            , A.width 100
+            , A.value path ]
+            [ text path ]
+        , button
+            [ E.onClick (RemoveSearchPathAtIndex index)
+            , removeSearchPathStyle ]
+            [ text Html.Entity.times ]
+        ]
+
+removeSearchPathStyle : Html.Styled.Attribute msg
+removeSearchPathStyle =
+    A.css
+        [ fontSize (px 20) ]
+
+addSearchPath : Html Msg
+addSearchPath =
+    button
+        [ E.onClick AddSearchPath ]
+        [ text "Add Search Path" ]
+
+settingsDialogButtons : Settings -> Html Msg
+settingsDialogButtons settings =
+    div []
+        [ button
+            [ E.onClick CancelSettings ]
+            [ text "Cancel" ]
+        , button
+            [ E.onClick SaveSettings ]
+            [ text "Save" ]
+        ]
 
 getSearchResults : String -> Cmd Msg
 getSearchResults term =
