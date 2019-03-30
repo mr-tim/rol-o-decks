@@ -398,9 +398,11 @@ modalContent model =
         [ span [ closeStyle, E.onClick CancelSettings ] [ text Html.Entity.times ]
         , h3 [] [ text "Settings" ]
         , h4 [] [ text "Search Paths" ]
-        , div [] (List.indexedMap searchPathControl model.settings.searchPaths)
-        , addSearchPath
-        , settingsDialogButtons model.settings
+        , div []
+            ([ p [] [ text "Any paths listed below will be indexed for presentations." ] ]
+                ++ List.indexedMap searchPathControl model.settings.searchPaths
+            )
+        , settingsDialogButtons
         ]
 
 
@@ -439,7 +441,7 @@ searchPathControl : Int -> String -> Html Msg
 searchPathControl index path =
     div [ A.css [ displayFlex ] ]
         [ input
-            [ A.css [ fontSize (px 20), flexGrow (num 1) ]
+            [ A.css [ fontSize (px 15), flexGrow (num 1) ]
             , E.onInput (UpdateSearchPathAtIndex index)
             , A.width 100
             , A.value path
@@ -456,26 +458,68 @@ searchPathControl index path =
 removeSearchPathStyle : Html.Styled.Attribute msg
 removeSearchPathStyle =
     A.css
-        [ fontSize (px 20) ]
+        [ fontSize (px 15) ]
+
+
+settingsDialogButtons : Html Msg
+settingsDialogButtons =
+    div
+        [ A.css
+            [ displayFlex
+            , justifyContent flexEnd
+            , marginTop (px 4)
+            ]
+        ]
+        [ addSearchPath
+        , button
+            [ cancelButtonStyle, E.onClick CancelSettings ]
+            [ text "Cancel" ]
+        , button
+            [ saveButtonStyle, E.onClick SaveSettings ]
+            [ text "Save" ]
+        ]
 
 
 addSearchPath : Html Msg
 addSearchPath =
     button
-        [ E.onClick AddSearchPath ]
+        [ addSearchPathStyle, E.onClick AddSearchPath ]
         [ text "Add Search Path" ]
 
 
-settingsDialogButtons : Settings -> Html Msg
-settingsDialogButtons settings =
-    div []
-        [ button
-            [ E.onClick CancelSettings ]
-            [ text "Cancel" ]
-        , button
-            [ E.onClick SaveSettings ]
-            [ text "Save" ]
-        ]
+addSearchPathStyle : Html.Styled.Attribute msg
+addSearchPathStyle =
+    A.css
+        buttonBase
+
+
+cancelButtonStyle : Html.Styled.Attribute msg
+cancelButtonStyle =
+    A.css
+        ([ backgroundColor (rgb 220 0 0)
+         , color (rgb 255 255 255)
+         ]
+            ++ buttonBase
+        )
+
+
+saveButtonStyle : Html.Styled.Attribute msg
+saveButtonStyle =
+    A.css
+        ([ backgroundColor (hex "007bff")
+         , color (hex "ffffff")
+         ]
+            ++ buttonBase
+        )
+
+
+buttonBase : List Style
+buttonBase =
+    [ fontSize (px 15)
+    , borderRadius (px 4)
+    , padding (px 6)
+    , margin (px 2)
+    ]
 
 
 getSearchResults : String -> Cmd Msg
