@@ -44,7 +44,7 @@ func main() {
 	})
 
 	r.HandleFunc("/ui.min.js", func (w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, ui_bundle.Ui_uiMinJs())
+		fmt.Fprint(w, ui_bundle.Ui_uiJs())
 	})
 
 	log.Fatal(http.ListenAndServe(":8000", r))
