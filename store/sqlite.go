@@ -42,7 +42,7 @@ func ensureDatabasePresent(uri string) *sql.DB {
   	)`)
 	checkErrors(err, "Failed to create settings table DML")
 	_, err = s.Exec()
-	checkErrors(err, "Failed to creat settings table")
+	checkErrors(err, "Failed to create settings table")
 
 	s, err = db.Prepare(`CREATE TABLE IF NOT EXISTS document (
 	id INTEGER NOT NULL,

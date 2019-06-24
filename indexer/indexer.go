@@ -78,7 +78,24 @@ func doIndexPaths(s store.SlideStore, done chan bool) {
 
 	paths := s.GetIndexPaths()
 
-	for _, path := range paths {
+	var validPaths []string
+	//check that that paths exist
+	for _, p := range paths {
+		info, err := os.Lstat(p)
+		if err == nil && info.IsDir() {
+			validPaths = append(validPaths, p)
+		} else if err != nil {
+			log.Printf("Failed to index %s because of error: %s\n", p, err)
+		} else {
+			log.Printf("Failed to index %s - it is not a directory\n", p)
+		}
+	}
+
+	if len(paths) != len(validPaths) {
+		s.SetIndexPaths(validPaths)
+	}
+
+	for _, path := range validPaths {
 		log.Printf("Starting index %s", path)
 		err := watcher.Add(path)
 		if err != nil {
